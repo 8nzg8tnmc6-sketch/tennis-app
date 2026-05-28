@@ -45,6 +45,7 @@
     .media-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-top: 8px; }
     .media-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; }
     .btn-delete { background: transparent; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 18px; padding: 2px 6px; }
+    .btn-edit { background: transparent; border: none; color: #e3b341; cursor: pointer; font-size: 16px; padding: 2px 6px; }
     .btn-small { padding: 10px 20px; border-radius: 8px; border: none; background: #d4622a; color: #fff; font-size: 15px; font-weight: bold; cursor: pointer; font-family: inherit; }
     .btn-ghost { padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: rgba(255,255,255,0.4); font-size: 15px; cursor: pointer; font-family: inherit; }
     .btn-logout { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); border-radius: 8px; padding: 7px 13px; cursor: pointer; font-size: 13px; font-family: inherit; }
@@ -70,6 +71,13 @@
     .media-wrap { position: relative; }
     .remove-btn { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); border: none; color: #fff; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; line-height: 22px; padding: 0; }
     .compress-info { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 4px; text-align: center; }
+    .search-box { display: flex; gap: 8px; margin-bottom: 14px; }
+    .search-input { flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: #161b22; color: #e6edf3; font-size: 15px; outline: none; font-family: inherit; }
+    .search-clear { padding: 10px 14px; border-radius: 10px; border: none; background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.5); cursor: pointer; font-size: 14px; font-family: inherit; }
+    .highlight { background: rgba(212,98,42,0.3); border-radius: 3px; padding: 0 2px; }
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; }
+    .modal-card { background: #161b22; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; width: 100%; max-width: 520px; margin-top: 20px; }
+    .modal-title { font-size: 16px; font-weight: bold; color: #e3b341; margin-bottom: 16px; }
   </style>
 </head>
 <body><div id="auth-screen">
@@ -94,6 +102,22 @@
     <p style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;margin-top:8px;line-height:1.7">メール: coach@tennis.demo<br>パスワード: demo1234</p>
   </div>
 </div>
+
+<div id="edit-modal" style="display:none">
+  <div class="modal-overlay" onclick="closeEditModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">✏️ レッスン記録を編集</div>
+      <div id="edit-form-error" class="error-msg" style="display:none"></div>
+      <div class="field"><label>レッスン日</label><input type="date" id="edit-date" /></div>
+      <div id="edit-fields"></div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn-small" onclick="saveEdit()">保存する</button>
+        <button class="btn-ghost" onclick="document.getElementById('edit-modal').style.display='none'">キャンセル</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="app-screen">
   <div class="app-header">
     <div class="header-left">
@@ -112,6 +136,10 @@
   </div>
   <div class="page active" id="page-lessons">
     <div id="lesson-success" class="success-msg" style="display:none">✅ レッスン記録を保存しました！</div>
+    <div class="search-box">
+      <input class="search-input" id="search-input" placeholder="🔍 キーワードで検索..." oninput="searchLessons()" />
+      <button class="search-clear" onclick="clearSearch()">✕</button>
+    </div>
     <div id="lessons-list"></div>
   </div>
   <div class="page" id="page-add-lesson">
@@ -168,7 +196,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = { apiKey: "AIzaSyCcHP3CYrz3zxfhWrN1ZqCOy4UCzadkZ2M", authDomain: "tennis-app-5def5.firebaseapp.com", projectId: "tennis-app-5def5", storageBucket: "tennis-app-5def5.firebasestorage.app", messagingSenderId: "230067583918", appId: "1:230067583918:web:1aed85c7cc2e842a35a63f" };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -206,6 +234,7 @@ const MATCH_FIELDS = [
   { key:'next', label:'🎯 次回への課題', color:'#e3b341', ph:'次の試合に向けて練習することは？' },
 ];
 let _lessonPhotos={}, _matchPhotos=[], _matchResult='win', _authMode='login';
+let _allLessons=[], _editingId=null, _editPhotos={};
 
 onAuthStateChanged(auth, user => {
   if (user) {
@@ -231,11 +260,9 @@ window.switchAuthTab = (mode) => {
   document.getElementById('field-password').style.display='block';
   document.getElementById('reset-btn').style.display=mode==='login'?'block':'none';
 };
-
 window.showResetMode = () => {
-  const errEl=document.getElementById('auth-error');
-  const sucEl=document.getElementById('auth-success');
-  errEl.style.display='none'; sucEl.style.display='none';
+  document.getElementById('auth-error').style.display='none';
+  document.getElementById('auth-success').style.display='none';
   document.getElementById('field-password').style.display='none';
   document.getElementById('field-name').style.display='none';
   document.getElementById('auth-btn').textContent='リセットメールを送る';
@@ -247,9 +274,7 @@ window.showResetMode = () => {
   };
   _authMode='reset';
 };
-
 window.fillDemo = () => { switchAuthTab('login'); document.getElementById('input-email').value='coach@tennis.demo'; document.getElementById('input-password').value='demo1234'; };
-
 window.handleAuth = async () => {
   const email=document.getElementById('input-email').value.trim();
   const pw=document.getElementById('input-password').value;
@@ -260,9 +285,8 @@ window.handleAuth = async () => {
   try {
     if (_authMode==='reset') {
       await sendPasswordResetEmail(auth, email);
-      sucEl.textContent='✅ パスワードリセットメールを送りました。メールをご確認ください。';
-      sucEl.style.display='block';
-      return;
+      sucEl.textContent='✅ パスワードリセットメールを送りました。';
+      sucEl.style.display='block'; return;
     }
     if (_authMode==='signup') {
       if (!name){errEl.textContent='お名前を入力してください';errEl.style.display='block';return;}
@@ -270,11 +294,10 @@ window.handleAuth = async () => {
       await updateProfile(cred.user,{displayName:name});
     } else { await signInWithEmailAndPassword(auth,email,pw); }
   } catch(e) {
-    const msgs={'auth/email-already-in-use':'このメールは既に登録されています','auth/invalid-email':'メールアドレスの形式が正しくありません','auth/weak-password':'パスワードは6文字以上にしてください','auth/invalid-credential':'メールまたはパスワードが違います','auth/user-not-found':'このメールアドレスは登録されていません','auth/missing-email':'メールアドレスを入力してください'};
+    const msgs={'auth/email-already-in-use':'このメールは既に登録されています','auth/invalid-email':'メールアドレスの形式が正しくありません','auth/weak-password':'パスワードは6文字以上にしてください','auth/invalid-credential':'メールまたはパスワードが違います'};
     errEl.textContent=msgs[e.code]||'エラー: '+e.message; errEl.style.display='block';
   }
 };
-
 window.logout = async () => { await signOut(auth); };
 window.showTab = (tab) => {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -283,6 +306,56 @@ window.showTab = (tab) => {
   document.getElementById('nav-'+tab).classList.add('active');
 };
 function setTodayDates() { const t=new Date().toISOString().split('T')[0]; document.getElementById('lesson-date').value=t; document.getElementById('match-date').value=t; }
+
+// 検索
+window.searchLessons = () => { renderLessons(_allLessons); };
+window.clearSearch = () => { document.getElementById('search-input').value=''; renderLessons(_allLessons); };
+function highlight(text, kw) {
+  if (!kw||!text) return text||'';
+  return text.replace(new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), m=>`<span class="highlight">${m}</span>`);
+}
+
+// 編集モーダル
+window.openEditModal = (id) => {
+  const l = _allLessons.find(x=>x.id===id); if (!l) return;
+  _editingId = id;
+  _editPhotos = {};
+  document.getElementById('edit-date').value = l.date;
+  const c = document.getElementById('edit-fields'); c.innerHTML='';
+  LESSON_FIELDS.forEach(f => {
+    _editPhotos[f.key] = [...(l[f.key+'Media']||[])];
+    c.innerHTML += `<div class="form-field-block" style="border-left:3px solid ${f.color}">
+      <label style="color:${f.color};font-weight:bold;font-size:15px;margin-bottom:8px">${f.label}</label>
+      <textarea id="edit-${f.key}" placeholder="${f.ph}">${l[f.key]||''}</textarea>
+      <div class="media-grid" id="edit-preview-${f.key}"></div>
+    </div>`;
+  });
+  LESSON_FIELDS.forEach(f => renderEditPreview(f.key));
+  document.getElementById('edit-modal').style.display='block';
+};
+window.closeEditModal = (e) => { if(e.target===e.currentTarget) document.getElementById('edit-modal').style.display='none'; };
+function renderEditPreview(key) {
+  const grid=document.getElementById('edit-preview-'+key); if(!grid) return;
+  grid.innerHTML='';
+  (_editPhotos[key]||[]).forEach((m,i)=>{
+    const wrap=document.createElement('div'); wrap.className='media-wrap';
+    wrap.innerHTML=`<img src="${m.data}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px" />`;
+    const btn=document.createElement('button'); btn.className='remove-btn'; btn.textContent='✕';
+    btn.onclick=()=>{_editPhotos[key].splice(i,1);renderEditPreview(key);};
+    wrap.appendChild(btn); grid.appendChild(wrap);
+  });
+}
+window.saveEdit = async () => {
+  const errEl=document.getElementById('edit-form-error'); errEl.style.display='none';
+  const learned=document.getElementById('edit-learned').value.trim();
+  if (!learned){errEl.textContent='「習ったこと」を入力してください';errEl.style.display='block';return;}
+  const data={date:document.getElementById('edit-date').value};
+  LESSON_FIELDS.forEach(f=>{data[f.key]=document.getElementById('edit-'+f.key).value.trim();data[f.key+'Media']=_editPhotos[f.key]||[];});
+  await updateDoc(doc(db,'lessons',_editingId),data);
+  document.getElementById('edit-modal').style.display='none';
+  loadLessons();
+};
+
 function buildLessonForm() {
   _lessonPhotos={};
   const c=document.getElementById('lesson-fields'); c.innerHTML='';
@@ -327,16 +400,30 @@ async function loadLessons() {
   const uid=auth.currentUser?.uid; if (!uid) return;
   const el=document.getElementById('lessons-list'); el.innerHTML='<div class="loading">読み込み中…</div>';
   const q=query(collection(db,'lessons'),where('uid','==',uid),orderBy('date','desc'));
-  const snap=await getDocs(q); const docs=[]; snap.forEach(d=>docs.push({id:d.id,...d.data()}));
-  el.innerHTML='';
-  if (!docs.length){el.innerHTML='<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">📓</div>まだ記録がありません<br><span style="font-size:14px">「記録」から追加しましょう</span></div>';return;}
-  docs.forEach(l=>{
+  const snap=await getDocs(q); _allLessons=[];
+  snap.forEach(d=>_allLessons.push({id:d.id,...d.data()}));
+  renderLessons(_allLessons);
+}
+function renderLessons(docs) {
+  const kw = document.getElementById('search-input')?.value.trim()||'';
+  const filtered = kw ? docs.filter(l=>LESSON_FIELDS.some(f=>(l[f.key]||'').includes(kw))||l.date.includes(kw)) : docs;
+  const el=document.getElementById('lessons-list'); el.innerHTML='';
+  if (!filtered.length){
+    el.innerHTML=`<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">${kw?'🔍':'📓'}</div>${kw?`「${kw}」の記録が見つかりません`:'まだ記録がありません'}<br><span style="font-size:14px">${kw?'':'「記録」から追加しましょう'}</span></div>`;
+    return;
+  }
+  filtered.forEach(l=>{
     const div=document.createElement('div'); div.className='lesson-item';
-    let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:13px;color:#e3b341">📅 ${l.date}</div><button class="btn-delete" onclick="deleteLesson('${l.id}')">🗑</button></div>`;
+    let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="font-size:13px;color:#e3b341">📅 ${l.date}</div>
+      <div>
+        <button class="btn-edit" onclick="openEditModal('${l.id}')" title="編集">✏️</button>
+        <button class="btn-delete" onclick="deleteLesson('${l.id}')">🗑</button>
+      </div></div>`;
     LESSON_FIELDS.forEach(f=>{
       const text=l[f.key]; const media=l[f.key+'Media']||[];
       if (!text&&!media.length) return;
-      html+=`<div class="field-block" style="border-left:3px solid ${f.color}"><div class="field-label">${f.label}</div>${text?`<div class="field-text">${text}</div>`:''}${media.length?`<div class="media-grid">${media.map(m=>`<img src="${m.data}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">`).join('')}</div>`:''}</div>`;
+      html+=`<div class="field-block" style="border-left:3px solid ${f.color}"><div class="field-label">${f.label}</div>${text?`<div class="field-text">${highlight(text,kw)}</div>`:''}${media.length?`<div class="media-grid">${media.map(m=>`<img src="${m.data}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">`).join('')}</div>`:''}</div>`;
     });
     div.innerHTML=html; el.appendChild(div);
   });
