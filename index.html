@@ -4,6 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>テニスノート</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="テニスノート" />
+  <meta name="theme-color" content="#d4622a" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Hiragino Maru Gothic ProN','Hiragino Sans','BIZ UDGothic','Noto Sans JP',sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
@@ -64,8 +70,7 @@
     .remove-btn { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); border: none; color: #fff; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; line-height: 22px; padding: 0; }
   </style>
 </head>
-<body>
-<div id="auth-screen">
+<body><div id="auth-screen">
   <div style="font-size:56px;text-align:center;margin-bottom:8px">🎾</div>
   <div style="font-size:26px;font-weight:bold;letter-spacing:2px;margin-bottom:4px;text-align:center">テニスノート</div>
   <div style="font-size:13px;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-bottom:32px;text-align:center">TENNIS LESSON JOURNAL</div>
@@ -354,5 +359,13 @@ async function loadMatches() {
 }
 window.deleteMatch = async (id) => { await deleteDoc(doc(db,'matches',id)); loadMatches(); };
 </script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js');
+  });
+}
+</script>
 </body>
 </html>
+
