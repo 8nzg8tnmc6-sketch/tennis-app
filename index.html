@@ -25,6 +25,7 @@
     textarea { min-height: 80px; resize: vertical; line-height: 1.6; }
     .btn-primary { width: 100%; padding: 13px; border-radius: 10px; border: none; background: #d4622a; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; font-family: inherit; }
     .btn-demo { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid rgba(227,179,65,0.35); background: rgba(227,179,65,0.12); color: #e3b341; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; font-family: inherit; }
+    .btn-reset { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 13px; cursor: pointer; text-decoration: underline; font-family: inherit; margin-top: 10px; display: block; width: 100%; text-align: center; }
     .divider { border-top: 1px solid rgba(255,255,255,0.08); margin: 20px 0 14px; }
     .error-msg { background: rgba(218,54,51,0.12); border: 1px solid rgba(218,54,51,0.3); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #f85149; margin-bottom: 14px; }
     .success-msg { background: rgba(46,160,67,0.12); border: 1px solid rgba(46,160,67,0.3); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #3fb950; margin-bottom: 14px; }
@@ -71,8 +72,7 @@
     .compress-info { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 4px; text-align: center; }
   </style>
 </head>
-<body>
-<div id="auth-screen">
+<body><div id="auth-screen">
   <div style="font-size:56px;text-align:center;margin-bottom:8px">🎾</div>
   <div style="font-size:26px;font-weight:bold;letter-spacing:2px;margin-bottom:4px;text-align:center">テニスノート</div>
   <div style="font-size:13px;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-bottom:32px;text-align:center">TENNIS LESSON JOURNAL</div>
@@ -82,10 +82,12 @@
       <button class="tab-btn" id="tab-signup" onclick="switchAuthTab('signup')">新規登録</button>
     </div>
     <div id="auth-error" class="error-msg" style="display:none"></div>
+    <div id="auth-success" class="success-msg" style="display:none"></div>
     <div id="field-name" class="field" style="display:none"><label>お名前</label><input type="text" id="input-name" placeholder="例：田中 花子" /></div>
     <div class="field"><label>メールアドレス</label><input type="email" id="input-email" placeholder="example@email.com" /></div>
-    <div class="field"><label>パスワード <span id="pw-hint" style="display:none;color:rgba(255,255,255,0.3)">(6文字以上)</span></label><input type="password" id="input-password" placeholder="••••••••" /></div>
+    <div id="field-password" class="field"><label>パスワード <span id="pw-hint" style="display:none;color:rgba(255,255,255,0.3)">(6文字以上)</span></label><input type="password" id="input-password" placeholder="••••••••" /></div>
     <button class="btn-primary" id="auth-btn" onclick="handleAuth()">ログイン</button>
+    <button class="btn-reset" id="reset-btn" onclick="showResetMode()">パスワードをお忘れの方はこちら</button>
     <div class="divider"></div>
     <p style="font-size:13px;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:10px">── まずお試しください ──</p>
     <button class="btn-demo" onclick="fillDemo()">🎾 デモアカウントで試す</button>
@@ -165,14 +167,13 @@
 </div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = { apiKey: "AIzaSyCcHP3CYrz3zxfhWrN1ZqCOy4UCzadkZ2M", authDomain: "tennis-app-5def5.firebaseapp.com", projectId: "tennis-app-5def5", storageBucket: "tennis-app-5def5.firebasestorage.app", messagingSenderId: "230067583918", appId: "1:230067583918:web:1aed85c7cc2e842a35a63f" };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 画像圧縮関数
 function compressImage(file, maxWidth=800, quality=0.6) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -205,6 +206,7 @@ const MATCH_FIELDS = [
   { key:'next', label:'🎯 次回への課題', color:'#e3b341', ph:'次の試合に向けて練習することは？' },
 ];
 let _lessonPhotos={}, _matchPhotos=[], _matchResult='win', _authMode='login';
+
 onAuthStateChanged(auth, user => {
   if (user) {
     document.getElementById('auth-screen').style.display='none';
@@ -216,6 +218,7 @@ onAuthStateChanged(auth, user => {
     document.getElementById('app-screen').style.display='none';
   }
 });
+
 window.switchAuthTab = (mode) => {
   _authMode=mode;
   document.getElementById('tab-login').className='tab-btn'+(mode==='login'?' active':'');
@@ -224,24 +227,54 @@ window.switchAuthTab = (mode) => {
   document.getElementById('pw-hint').style.display=mode==='signup'?'inline':'none';
   document.getElementById('auth-btn').textContent=mode==='login'?'ログイン':'アカウントを作成';
   document.getElementById('auth-error').style.display='none';
+  document.getElementById('auth-success').style.display='none';
+  document.getElementById('field-password').style.display='block';
+  document.getElementById('reset-btn').style.display=mode==='login'?'block':'none';
 };
+
+window.showResetMode = () => {
+  const errEl=document.getElementById('auth-error');
+  const sucEl=document.getElementById('auth-success');
+  errEl.style.display='none'; sucEl.style.display='none';
+  document.getElementById('field-password').style.display='none';
+  document.getElementById('field-name').style.display='none';
+  document.getElementById('auth-btn').textContent='リセットメールを送る';
+  document.getElementById('reset-btn').textContent='← ログインに戻る';
+  document.getElementById('reset-btn').onclick = () => {
+    switchAuthTab('login');
+    document.getElementById('reset-btn').textContent='パスワードをお忘れの方はこちら';
+    document.getElementById('reset-btn').onclick = showResetMode;
+  };
+  _authMode='reset';
+};
+
 window.fillDemo = () => { switchAuthTab('login'); document.getElementById('input-email').value='coach@tennis.demo'; document.getElementById('input-password').value='demo1234'; };
+
 window.handleAuth = async () => {
   const email=document.getElementById('input-email').value.trim();
   const pw=document.getElementById('input-password').value;
   const name=document.getElementById('input-name').value.trim();
-  const errEl=document.getElementById('auth-error'); errEl.style.display='none';
+  const errEl=document.getElementById('auth-error');
+  const sucEl=document.getElementById('auth-success');
+  errEl.style.display='none'; sucEl.style.display='none';
   try {
+    if (_authMode==='reset') {
+      await sendPasswordResetEmail(auth, email);
+      sucEl.textContent='✅ パスワードリセットメールを送りました。メールをご確認ください。';
+      sucEl.style.display='block';
+      return;
+    }
     if (_authMode==='signup') {
       if (!name){errEl.textContent='お名前を入力してください';errEl.style.display='block';return;}
       const cred=await createUserWithEmailAndPassword(auth,email,pw);
       await updateProfile(cred.user,{displayName:name});
     } else { await signInWithEmailAndPassword(auth,email,pw); }
   } catch(e) {
-    const msgs={'auth/email-already-in-use':'このメールは既に登録されています','auth/invalid-email':'メールアドレスの形式が正しくありません','auth/weak-password':'パスワードは6文字以上にしてください','auth/invalid-credential':'メールまたはパスワードが違います'};
+    const msgs={'auth/email-already-in-use':'このメールは既に登録されています','auth/invalid-email':'メールアドレスの形式が正しくありません','auth/weak-password':'パスワードは6文字以上にしてください','auth/invalid-credential':'メールまたはパスワードが違います','auth/user-not-found':'このメールアドレスは登録されていません','auth/missing-email':'メールアドレスを入力してください'};
     errEl.textContent=msgs[e.code]||'エラー: '+e.message; errEl.style.display='block';
   }
 };
+
 window.logout = async () => { await signOut(auth); };
 window.showTab = (tab) => {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -388,3 +421,4 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
+
