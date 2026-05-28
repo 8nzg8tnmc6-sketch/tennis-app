@@ -118,6 +118,36 @@
   </div>
 </div>
 
+<div id="edit-match-modal" style="display:none">
+  <div class="modal-overlay" onclick="closeEditMatchModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-title">✏️ 試合記録を編集</div>
+      <div id="edit-match-form-error" class="error-msg" style="display:none"></div>
+      <div class="field"><label>試合日</label><input type="date" id="edit-match-date" /></div>
+      <div class="field"><label>対戦相手</label><input type="text" id="edit-match-opponent" placeholder="例：山田 太郎" /></div>
+      <div class="field"><label>スコア</label><input type="text" id="edit-match-score" placeholder="例：6-4, 7-5" /></div>
+      <div class="field"><label>結果</label>
+        <div class="result-btn-row">
+          <button class="result-btn" id="edit-result-win" onclick="setEditResult('win')">✨ 勝ち</button>
+          <button class="result-btn" id="edit-result-lose" onclick="setEditResult('lose')">😤 負け</button>
+        </div>
+      </div>
+      <div id="edit-match-fields"></div>
+      <div class="field"><label>📷 写真を添付（自動圧縮）</label>
+        <div class="upload-box" onclick="document.getElementById('edit-match-file-input').click()">タップして写真を選択
+          <input type="file" id="edit-match-file-input" accept="image/*" multiple style="display:none" onchange="handleEditMatchFiles(event)" />
+        </div>
+        <div class="compress-info">※ 写真は自動的に圧縮されます</div>
+        <div class="media-grid" id="edit-match-photo-preview"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn-small" onclick="saveMatchEdit()">保存する</button>
+        <button class="btn-ghost" onclick="document.getElementById('edit-match-modal').style.display='none'">キャンセル</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="app-screen">
   <div class="app-header">
     <div class="header-left">
@@ -234,7 +264,8 @@ const MATCH_FIELDS = [
   { key:'next', label:'🎯 次回への課題', color:'#e3b341', ph:'次の試合に向けて練習することは？' },
 ];
 let _lessonPhotos={}, _matchPhotos=[], _matchResult='win', _authMode='login';
-let _allLessons=[], _editingId=null, _editPhotos={};
+let _allLessons=[], _allMatches=[], _editingId=null, _editPhotos={};
+let _editingMatchId=null, _editMatchPhotos=[], _editMatchResult='win';
 
 onAuthStateChanged(auth, user => {
   if (user) {
@@ -307,7 +338,6 @@ window.showTab = (tab) => {
 };
 function setTodayDates() { const t=new Date().toISOString().split('T')[0]; document.getElementById('lesson-date').value=t; document.getElementById('match-date').value=t; }
 
-// 検索
 window.searchLessons = () => { renderLessons(_allLessons); };
 window.clearSearch = () => { document.getElementById('search-input').value=''; renderLessons(_allLessons); };
 function highlight(text, kw) {
@@ -315,11 +345,9 @@ function highlight(text, kw) {
   return text.replace(new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'), m=>`<span class="highlight">${m}</span>`);
 }
 
-// 編集モーダル
 window.openEditModal = (id) => {
   const l = _allLessons.find(x=>x.id===id); if (!l) return;
-  _editingId = id;
-  _editPhotos = {};
+  _editingId = id; _editPhotos = {};
   document.getElementById('edit-date').value = l.date;
   const c = document.getElementById('edit-fields'); c.innerHTML='';
   LESSON_FIELDS.forEach(f => {
@@ -354,6 +382,68 @@ window.saveEdit = async () => {
   await updateDoc(doc(db,'lessons',_editingId),data);
   document.getElementById('edit-modal').style.display='none';
   loadLessons();
+};
+
+// 試合編集
+window.openEditMatchModal = (id) => {
+  const m = _allMatches.find(x=>x.id===id); if (!m) return;
+  _editingMatchId = id;
+  _editMatchPhotos = [...(m.photos||[])];
+  _editMatchResult = m.result||'win';
+  document.getElementById('edit-match-date').value = m.date;
+  document.getElementById('edit-match-opponent').value = m.opponent||'';
+  document.getElementById('edit-match-score').value = m.score||'';
+  document.getElementById('edit-result-win').className='result-btn'+(_editMatchResult==='win'?' active-win':'');
+  document.getElementById('edit-result-lose').className='result-btn'+(_editMatchResult==='lose'?' active-lose':'');
+  const c=document.getElementById('edit-match-fields'); c.innerHTML='';
+  MATCH_FIELDS.forEach(f=>{
+    c.innerHTML+=`<div class="form-field-block" style="border-left:3px solid ${f.color}">
+      <label style="color:${f.color};font-weight:bold;font-size:15px;margin-bottom:8px">${f.label}</label>
+      <textarea id="edit-match-${f.key}" placeholder="${f.ph}">${m[f.key]||''}</textarea>
+    </div>`;
+  });
+  renderEditMatchPreview();
+  document.getElementById('edit-match-modal').style.display='block';
+};
+window.closeEditMatchModal = (e) => { if(e.target===e.currentTarget) document.getElementById('edit-match-modal').style.display='none'; };
+window.setEditResult = (r) => {
+  _editMatchResult=r;
+  document.getElementById('edit-result-win').className='result-btn'+(r==='win'?' active-win':'');
+  document.getElementById('edit-result-lose').className='result-btn'+(r==='lose'?' active-lose':'');
+};
+window.handleEditMatchFiles = async (e) => {
+  for (const file of Array.from(e.target.files)) {
+    const compressed = await compressImage(file);
+    _editMatchPhotos.push({type:'image',data:compressed});
+    renderEditMatchPreview();
+  }
+};
+function renderEditMatchPreview() {
+  const grid=document.getElementById('edit-match-photo-preview'); if(!grid) return;
+  grid.innerHTML='';
+  _editMatchPhotos.forEach((m,i)=>{
+    const wrap=document.createElement('div'); wrap.className='media-wrap';
+    wrap.innerHTML=`<img src="${m.data}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px" />`;
+    const btn=document.createElement('button'); btn.className='remove-btn'; btn.textContent='✕';
+    btn.onclick=()=>{_editMatchPhotos.splice(i,1);renderEditMatchPreview();};
+    wrap.appendChild(btn); grid.appendChild(wrap);
+  });
+}
+window.saveMatchEdit = async () => {
+  const errEl=document.getElementById('edit-match-form-error'); errEl.style.display='none';
+  const opponent=document.getElementById('edit-match-opponent').value.trim();
+  if (!opponent){errEl.textContent='対戦相手を入力してください';errEl.style.display='block';return;}
+  const data={
+    date:document.getElementById('edit-match-date').value,
+    opponent,
+    score:document.getElementById('edit-match-score').value.trim(),
+    result:_editMatchResult,
+    photos:_editMatchPhotos
+  };
+  MATCH_FIELDS.forEach(f=>{data[f.key]=document.getElementById('edit-match-'+f.key).value.trim();});
+  await updateDoc(doc(db,'matches',_editingMatchId),data);
+  document.getElementById('edit-match-modal').style.display='none';
+  loadMatches();
 };
 
 function buildLessonForm() {
@@ -405,8 +495,8 @@ async function loadLessons() {
   renderLessons(_allLessons);
 }
 function renderLessons(docs) {
-  const kw = document.getElementById('search-input')?.value.trim()||'';
-  const filtered = kw ? docs.filter(l=>LESSON_FIELDS.some(f=>(l[f.key]||'').includes(kw))||l.date.includes(kw)) : docs;
+  const kw=document.getElementById('search-input')?.value.trim()||'';
+  const filtered=kw?docs.filter(l=>LESSON_FIELDS.some(f=>(l[f.key]||'').includes(kw))||l.date.includes(kw)):docs;
   const el=document.getElementById('lessons-list'); el.innerHTML='';
   if (!filtered.length){
     el.innerHTML=`<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">${kw?'🔍':'📓'}</div>${kw?`「${kw}」の記録が見つかりません`:'まだ記録がありません'}<br><span style="font-size:14px">${kw?'':'「記録」から追加しましょう'}</span></div>`;
@@ -416,10 +506,8 @@ function renderLessons(docs) {
     const div=document.createElement('div'); div.className='lesson-item';
     let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div style="font-size:13px;color:#e3b341">📅 ${l.date}</div>
-      <div>
-        <button class="btn-edit" onclick="openEditModal('${l.id}')" title="編集">✏️</button>
-        <button class="btn-delete" onclick="deleteLesson('${l.id}')">🗑</button>
-      </div></div>`;
+      <div><button class="btn-edit" onclick="openEditModal('${l.id}')" title="編集">✏️</button>
+      <button class="btn-delete" onclick="deleteLesson('${l.id}')">🗑</button></div></div>`;
     LESSON_FIELDS.forEach(f=>{
       const text=l[f.key]; const media=l[f.key+'Media']||[];
       if (!text&&!media.length) return;
@@ -481,18 +569,25 @@ window.saveMatch = async () => {
 async function loadMatches() {
   const uid=auth.currentUser?.uid; if (!uid) return;
   const q=query(collection(db,'matches'),where('uid','==',uid),orderBy('date','desc'));
-  const snap=await getDocs(q); const docs=[]; snap.forEach(d=>docs.push({id:d.id,...d.data()}));
-  const wins=docs.filter(m=>m.result==='win').length;
+  const snap=await getDocs(q); _allMatches=[];
+  snap.forEach(d=>_allMatches.push({id:d.id,...d.data()}));
+  const wins=_allMatches.filter(m=>m.result==='win').length;
   document.getElementById('match-stats').innerHTML=[
-    {label:'試合数',val:docs.length,color:'#e3b341'},
+    {label:'試合数',val:_allMatches.length,color:'#e3b341'},
     {label:'勝ち',val:wins,color:'#2ea043'},
-    {label:'負け',val:docs.length-wins,color:'#d4622a'},
+    {label:'負け',val:_allMatches.length-wins,color:'#d4622a'},
   ].map(s=>`<div class="stat-box"><div class="stat-num" style="color:${s.color}">${s.val}</div><div class="stat-label">${s.label}</div></div>`).join('');
   const el=document.getElementById('matches-list'); el.innerHTML='';
-  if (!docs.length){el.innerHTML='<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">🎾</div>まだ試合記録がありません</div>';return;}
-  docs.forEach(m=>{
+  if (!_allMatches.length){el.innerHTML='<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">🎾</div>まだ試合記録がありません</div>';return;}
+  _allMatches.forEach(m=>{
     const div=document.createElement('div'); div.className='match-item'; div.style.borderLeft=`4px solid ${m.result==='win'?'#2ea043':'#d4622a'}`;
-    let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div><span style="font-size:13px;color:#e3b341">${m.date}　</span><span style="font-size:18px;font-weight:bold">vs ${m.opponent}</span></div><div style="display:flex;align-items:center;gap:8px"><span class="result-badge ${m.result==='win'?'result-win':'result-lose'}">${m.result==='win'?'✨ 勝ち':'😤 負け'}</span><button class="btn-delete" onclick="deleteMatch('${m.id}')">🗑</button></div></div>`;
+    let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div><span style="font-size:13px;color:#e3b341">${m.date}　</span><span style="font-size:18px;font-weight:bold">vs ${m.opponent}</span></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="result-badge ${m.result==='win'?'result-win':'result-lose'}">${m.result==='win'?'✨ 勝ち':'😤 負け'}</span>
+        <button class="btn-edit" onclick="openEditMatchModal('${m.id}')" title="編集">✏️</button>
+        <button class="btn-delete" onclick="deleteMatch('${m.id}')">🗑</button>
+      </div></div>`;
     if (m.score) html+=`<div class="match-score">${m.score}</div>`;
     MATCH_FIELDS.forEach(f=>{if(m[f.key])html+=`<div class="field-block" style="border-left:3px solid ${f.color}"><div class="field-label">${f.label}</div><div class="field-text">${m[f.key]}</div></div>`;});
     if (m.photos?.length) html+=`<div class="media-grid">${m.photos.map(p=>`<img src="${p.data}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">`).join('')}</div>`;
