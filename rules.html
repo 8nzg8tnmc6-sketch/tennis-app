@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テニス超基本ルールガイド</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap');
+  :root { --green:#2d6a4f; --light-green:#52b788; --clay:#c8632a; --yellow:#f4d03f; --white:#fefefe; --dark:#1a1a2e; --bg:#f0f7f4; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Zen Maru Gothic',sans-serif; background:var(--bg); color:var(--dark); line-height:1.7; }
+  .hero { background:linear-gradient(135deg,var(--green) 0%,#1b4332 100%); padding:50px 20px 40px; text-align:center; }
+  .hero-ball { font-size:64px; display:block; margin-bottom:16px; animation:bounce 2s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .hero h1 { font-size:26px; font-weight:900; color:var(--yellow); letter-spacing:2px; margin-bottom:8px; }
+  .hero p { color:rgba(255,255,255,0.8); font-size:14px; }
+  .container { max-width:680px; margin:0 auto; padding:24px 16px 60px; }
+  .section { margin-bottom:24px; }
+  .section-title { display:flex; align-items:center; gap:10px; background:var(--green); color:var(--white); padding:12px 18px; border-radius:12px 12px 0 0; font-size:17px; font-weight:700; }
+  .section-title .emoji { font-size:22px; }
+  .section-body { background:var(--white); border-radius:0 0 12px 12px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+  .card { background:var(--bg); border-radius:10px; margin-bottom:10px; border-left:4px solid var(--light-green); overflow:hidden; }
+  .card:last-child { margin-bottom:0; }
+  .card-header { padding:14px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none; }
+  .card-header:hover { background:rgba(0,0,0,0.03); }
+  .card-title { font-size:15px; font-weight:700; color:var(--green); }
+  .card-arrow { font-size:18px; transition:transform 0.3s; color:var(--green); }
+  .card.open .card-arrow { transform:rotate(180deg); }
+  .card-body { display:none; padding:0 16px 14px; }
+  .card.open .card-body { display:block; }
+  .card-body p { font-size:14px; color:#444; margin-bottom:6px; }
+  .card-body p:last-child { margin-bottom:0; }
+  .diagram { background:#fff; border:2px solid #e0e0e0; border-radius:10px; margin:12px 0; padding:16px; text-align:center; }
+  .diagram svg { max-width:100%; height:auto; }
+  .diagram-caption { font-size:12px; color:#888; margin-top:8px; }
+  .score-table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  .score-table th { background:var(--green); color:var(--white); padding:10px 12px; text-align:center; font-weight:700; }
+  .score-table td { padding:10px 12px; text-align:center; border-bottom:1px solid #e0e0e0; }
+  .score-table tr:nth-child(even) td { background:var(--bg); }
+  .score-table .highlight { color:var(--clay); font-weight:700; font-size:16px; }
+  .flow { display:flex; flex-direction:column; }
+  .flow-item { display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px dashed #ccc; cursor:pointer; }
+  .flow-item:last-child { border-bottom:none; }
+  .flow-num { width:32px; height:32px; border-radius:50%; background:var(--clay); color:var(--white); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0; margin-top:2px; }
+  .flow-text { font-size:14px; color:#333; flex:1; }
+  .flow-text strong { color:var(--green); font-size:15px; display:block; margin-bottom:2px; }
+  .flow-detail { display:none; background:#e8f5e9; border-radius:8px; padding:10px 12px; margin-top:8px; font-size:13px; color:#2d6a4f; }
+  .flow-item.open .flow-detail { display:block; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+  .grid-item { background:var(--bg); border-radius:10px; padding:14px; text-align:center; border:2px solid transparent; cursor:pointer; transition:all 0.2s; }
+  .grid-item.green { border-color:var(--light-green); }
+  .grid-item.clay { border-color:var(--clay); }
+  .grid-item:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+  .grid-item .gi-icon { font-size:28px; margin-bottom:6px; }
+  .grid-item .gi-title { font-size:13px; font-weight:700; color:var(--dark); margin-bottom:4px; }
+  .grid-item .gi-desc { font-size:12px; color:#666; }
+  .grid-detail { display:none; background:var(--white); border:2px solid var(--light-green); border-radius:10px; padding:14px; margin-top:8px; }
+  .grid-detail.show { display:block; }
+  .alert { background:#fff0f0; border:2px solid #ffb3b3; border-radius:10px; padding:14px 16px; margin-bottom:10px; display:flex; gap:10px; align-items:flex-start; cursor:pointer; }
+  .alert .alert-icon { font-size:20px; flex-shrink:0; }
+  .alert .alert-text { font-size:14px; color:#c0392b; }
+  .alert-detail { display:none; background:#fff0f0; border-radius:8px; padding:10px; margin-top:8px; font-size:13px; color:#c0392b; }
+  .alert.open .alert-detail { display:block; }
+  .point-box { background:linear-gradient(135deg,#fff9e6,#fff3cc); border:2px solid var(--yellow); border-radius:10px; padding:14px 16px; margin-bottom:10px; cursor:pointer; }
+  .point-box:last-child { margin-bottom:0; }
+  .point-label { font-size:12px; color:#888; margin-bottom:4px; }
+  .point-value { font-size:22px; font-weight:900; color:var(--clay); letter-spacing:1px; }
+  .point-desc { font-size:13px; color:#555; margin-top:4px; }
+  .point-detail { display:none; margin-top:10px; }
+  .point-box.open .point-detail { display:block; }
+  .tip { background:#e8f5e9; border-left:4px solid var(--light-green); padding:10px 14px; border-radius:0 8px 8px 0; font-size:13px; color:#2d6a4f; margin-top:12px; }
+  .tip strong { font-weight:700; }
+  p { font-size:14px; color:#444; margin-bottom:8px; }
+  p:last-child { margin-bottom:0; }
+  .tap-hint { text-align:center; font-size:12px; color:#aaa; margin-bottom:12px; }
+  .back-btn { display:block; text-align:center; padding:12px; background:#2d6a4f; color:white; text-decoration:none; border-radius:10px; margin:20px 16px; font-weight:bold; font-size:15px; }
+  .footer { background:var(--green); color:rgba(255,255,255,0.8); text-align:center; padding:20px; font-size:13px; }
+</style>
+</head>
+<body>
+<a href="/" class="back-btn">← テニスノートに戻る</a><div class="hero">
+  <span class="hero-ball">🎾</span>
+  <h1>テニス超基本ルールガイド</h1>
+  <p>テニス初心者の高校生のための かんたん解説</p>
+</div>
+<div class="container">
+  <div class="section">
+    <div class="section-title"><span class="emoji">🏟️</span> コートの基本</div>
+    <div class="section-body">
+      <p class="tap-hint">👇 各項目をタップすると図解が見られます</p>
+      <div class="grid-2">
+        <div class="grid-item green" onclick="toggleGrid(this)"><div class="gi-icon">↔️</div><div class="gi-title">シングルス</div><div class="gi-desc">1対1の試合</div></div>
+        <div class="grid-item clay" onclick="toggleGrid(this)"><div class="gi-icon">👥</div><div class="gi-title">ダブルス</div><div class="gi-desc">2対2の試合</div></div>
+      </div>
+      <div id="singles-detail" class="grid-detail" style="border-color:var(--light-green)"><div class="diagram"><svg viewBox="0 0 160 220" width="160" height="220"><rect x="0" y="0" width="160" height="220" fill="#4a7c59" rx="4"/><rect x="8" y="10" width="144" height="200" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" stroke-dasharray="4,3"/><rect x="28" y="10" width="104" height="200" fill="none" stroke="white" stroke-width="2.5"/><line x1="8" y1="110" x2="152" y2="110" stroke="#f4d03f" stroke-width="3"/><line x1="28" y1="70" x2="132" y2="70" stroke="white" stroke-width="1.5"/><line x1="28" y1="150" x2="132" y2="150" stroke="white" stroke-width="1.5"/><line x1="80" y1="70" x2="80" y2="150" stroke="white" stroke-width="1.5"/><text x="80" y="7" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="7">ベースライン</text><text x="80" y="218" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="7">ベースライン</text><text x="55" y="93" text-anchor="middle" fill="white" font-size="7">サービス</text><text x="55" y="102" text-anchor="middle" fill="white" font-size="7">ボックス</text><text x="107" y="93" text-anchor="middle" fill="white" font-size="7">サービス</text><text x="107" y="102" text-anchor="middle" fill="white" font-size="7">ボックス</text><text x="80" y="107" text-anchor="middle" fill="#f4d03f" font-size="7">ネット</text><text x="17" y="108" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="6">DB</text><text x="143" y="108" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="6">DB</text></svg><div class="diagram-caption">白線の内側がシングルスコート。点線（DB）がダブルスの広いコートです。</div></div></div>
+      <div id="doubles-detail" class="grid-detail" style="border-color:var(--clay)"><div class="diagram"><svg viewBox="0 0 160 220" width="160" height="220"><rect x="0" y="0" width="160" height="220" fill="#4a7c59" rx="4"/><rect x="8" y="10" width="144" height="200" fill="none" stroke="white" stroke-width="2.5"/><rect x="28" y="10" width="104" height="200" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="8" y1="110" x2="152" y2="110" stroke="#f4d03f" stroke-width="3"/><line x1="28" y1="70" x2="132" y2="70" stroke="white" stroke-width="1.5"/><line x1="28" y1="150" x2="132" y2="150" stroke="white" stroke-width="1.5"/><line x1="80" y1="70" x2="80" y2="150" stroke="white" stroke-width="1.5"/><rect x="8" y="10" width="20" height="200" fill="rgba(212,98,42,0.35)"/><rect x="132" y="10" width="20" height="200" fill="rgba(212,98,42,0.35)"/><text x="80" y="107" text-anchor="middle" fill="#f4d03f" font-size="7">ネット</text><text x="18" y="103" text-anchor="middle" fill="white" font-size="7">アレー</text><text x="142" y="103" text-anchor="middle" fill="white" font-size="7">アレー</text></svg><div class="diagram-caption">オレンジのアレーエリアもダブルスでは使えます。</div></div></div>
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">📏 ラインの意味</span><span class="card-arrow">▼</span></div><div class="card-body"><p>ボールがライン上に当たった場合は「イン」です。ラインの外に出たら「アウト」になります。</p><div class="diagram"><svg viewBox="0 0 160 220" width="160" height="220"><rect x="0" y="0" width="160" height="220" fill="#4a7c59" rx="4"/><rect x="8" y="10" width="144" height="200" fill="none" stroke="white" stroke-width="2.5"/><rect x="28" y="10" width="104" height="200" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="8" y1="110" x2="152" y2="110" stroke="#f4d03f" stroke-width="3"/><line x1="28" y1="70" x2="132" y2="70" stroke="white" stroke-width="1.5"/><line x1="28" y1="150" x2="132" y2="150" stroke="white" stroke-width="1.5"/><line x1="80" y1="70" x2="80" y2="150" stroke="white" stroke-width="1.5"/><text x="80" y="107" text-anchor="middle" fill="#f4d03f" font-size="7">ネット</text><circle cx="80" cy="140" r="9" fill="#f4d03f"/><text x="80" y="144" text-anchor="middle" fill="#333" font-size="7" font-weight="bold">IN</text><circle cx="8" cy="110" r="9" fill="#52b788"/><text x="8" y="114" text-anchor="middle" fill="white" font-size="6" font-weight="bold">IN</text><circle cx="155" cy="80" r="9" fill="#c8632a"/><text x="155" y="84" text-anchor="middle" fill="white" font-size="6" font-weight="bold">OUT</text><text x="80" y="32" text-anchor="middle" fill="white" font-size="8">コート内 = IN ✅</text><text x="22" y="135" text-anchor="middle" fill="#a8e6cf" font-size="7">ライン上=IN✅</text><text x="148" y="70" text-anchor="middle" fill="#ffb3b3" font-size="7">ライン外=OUT❌</text></svg><div class="diagram-caption">ライン上に当たってもINです！外側に完全に出るとOUTです。</div></div></div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title"><span class="emoji">▶️</span> 試合の進め方</div>
+    <div class="section-body">
+      <p class="tap-hint">👇 各ステップをタップすると詳細が見られます</p>
+      <div class="flow">
+        <div class="flow-item" onclick="toggleFlow(this)"><div class="flow-num">1</div><div class="flow-text"><strong>ラケットを回してラフかスムースを選択して先攻を決める</strong>勝った方がサーブかレシーブかコートを選ぶ<div class="flow-detail"><div class="diagram"><svg viewBox="0 0 200 140" width="200" height="140"><rect x="0" y="0" width="200" height="140" fill="#f0f7f4" rx="8"/><ellipse cx="100" cy="50" rx="28" ry="35" fill="none" stroke="#2d6a4f" stroke-width="2.5"/><ellipse cx="100" cy="50" rx="28" ry="35" fill="rgba(82,183,136,0.15)"/><line x1="74" y1="35" x2="126" y2="35" stroke="#2d6a4f" stroke-width="1"/><line x1="72" y1="51" x2="128" y2="51" stroke="#2d6a4f" stroke-width="1"/><line x1="74" y1="67" x2="126" y2="67" stroke="#2d6a4f" stroke-width="1"/><line x1="86" y1="17" x2="86" y2="83" stroke="#2d6a4f" stroke-width="1"/><line x1="100" y1="15" x2="100" y2="85" stroke="#2d6a4f" stroke-width="1"/><line x1="114" y1="17" x2="114" y2="83" stroke="#2d6a4f" stroke-width="1"/><rect x="93" y="83" width="14" height="32" fill="#c8632a" rx="3"/><ellipse cx="100" cy="117" rx="10" ry="6" fill="#e3b341" stroke="#c8632a" stroke-width="1.5"/><text x="100" y="120" text-anchor="middle" fill="#333" font-size="6" font-weight="bold">MARK</text><defs><marker id="arr-mark" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#c8632a"/></marker></defs><path d="M148 117 L115 117" stroke="#c8632a" stroke-width="1.5" fill="none" marker-end="url(#arr-mark)"/><text x="163" y="113" text-anchor="middle" fill="#c8632a" font-size="8" font-weight="bold">グリップ</text><text x="163" y="123" text-anchor="middle" fill="#c8632a" font-size="8" font-weight="bold">エンド</text><path d="M72 45 Q60 25 78 15" stroke="#e3b341" stroke-width="2" fill="none" stroke-dasharray="4,2"/><text x="30" y="133" text-anchor="middle" fill="#2d6a4f" font-size="9" font-weight="bold">ラフ</text><text x="100" y="138" text-anchor="middle" fill="#888" font-size="7">どちらか選んで！</text><text x="170" y="133" text-anchor="middle" fill="#c8632a" font-size="9" font-weight="bold">スムース</text></svg></div>ラケットを地面に向けて回し、グリップエンドのメーカーマークが表か裏かで「ラフ」か「スムース」を当てます。当たった方がサーブかレシーブかコートを選べます。</div></div></div>
+        <div class="flow-item" onclick="toggleFlow(this)"><div class="flow-num">2</div><div class="flow-text"><strong>サーブで試合開始</strong>ベースラインの後ろから対角線へ打つ<div class="flow-detail"><div class="diagram"><svg viewBox="0 0 160 220" width="160" height="220"><rect x="0" y="0" width="160" height="220" fill="#4a7c59" rx="4"/><rect x="8" y="10" width="144" height="200" fill="none" stroke="white" stroke-width="2.5"/><rect x="28" y="10" width="104" height="200" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="8" y1="110" x2="152" y2="110" stroke="#f4d03f" stroke-width="3"/><line x1="28" y1="70" x2="132" y2="70" stroke="white" stroke-width="1.5"/><line x1="28" y1="150" x2="132" y2="150" stroke="white" stroke-width="1.5"/><line x1="80" y1="70" x2="80" y2="150" stroke="white" stroke-width="1.5"/><text x="80" y="107" text-anchor="middle" fill="#f4d03f" font-size="7">ネット</text><text x="80" y="7" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="6">ベースライン</text><text x="80" y="218" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="6">ベースライン</text><circle cx="110" cy="215" r="9" fill="#52b788"/><text x="110" y="219" text-anchor="middle" fill="white" font-size="6">サーブ</text><rect x="28" y="70" width="52" height="40" fill="rgba(244,211,63,0.35)" rx="2"/><text x="54" y="88" text-anchor="middle" fill="white" font-size="7" font-weight="bold">ここへ！</text><line x1="110" y1="210" x2="54" y2="110" stroke="rgba(255,255,255,0.5)" stroke-width="1.5" stroke-dasharray="4,3"/><defs><marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#f4d03f"/></marker></defs><path d="M110 206 Q85 160 56 95" stroke="#f4d03f" stroke-width="2.5" fill="none" stroke-dasharray="5,3" marker-end="url(#arrow)"/></svg></div>最初のサーブは右サイドから対角の左サービスボックスへ。次のポイントは左サイドから右へ交互に変わります。</div></div></div>
+        <div class="flow-item" onclick="toggleFlow(this)"><div class="flow-num">3</div><div class="flow-text"><strong>ラリー（打ち合い）</strong>ネットを越えてコート内に返球し合う<div class="flow-detail"><div class="diagram"><svg viewBox="0 0 160 220" width="160" height="220"><rect x="0" y="0" width="160" height="220" fill="#4a7c59" rx="4"/><rect x="8" y="10" width="144" height="200" fill="none" stroke="white" stroke-width="2.5"/><rect x="28" y="10" width="104" height="200" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="8" y1="110" x2="152" y2="110" stroke="#f4d03f" stroke-width="3"/><line x1="28" y1="70" x2="132" y2="70" stroke="white" stroke-width="1.5"/><line x1="28" y1="150" x2="132" y2="150" stroke="white" stroke-width="1.5"/><line x1="80" y1="70" x2="80" y2="150" stroke="white" stroke-width="1.5"/><circle cx="80" cy="185" r="10" fill="#52b788"/><text x="80" y="189" text-anchor="middle" fill="white" font-size="8" font-weight="bold">A</text><circle cx="80" cy="35" r="10" fill="#c8632a"/><text x="80" y="39" text-anchor="middle" fill="white" font-size="8" font-weight="bold">B</text><defs><marker id="arr-a" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="white"/></marker><marker id="arr-b" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#f4d03f"/></marker></defs><path d="M65 175 Q45 110 65 45" stroke="white" stroke-width="2" fill="none" stroke-dasharray="4,3" marker-end="url(#arr-a)"/><path d="M95 45 Q115 110 95 175" stroke="#f4d03f" stroke-width="2" fill="none" stroke-dasharray="4,3" marker-end="url(#arr-b)"/><text x="80" y="107" text-anchor="middle" fill="#f4d03f" font-size="7">ネット</text></svg></div>ボールはネットを越えて相手コート内に。1バウンドまで待つかノーバウンドで打ちます。</div></div></div>
+        <div class="flow-item" onclick="toggleFlow(this)"><div class="flow-num">4</div><div class="flow-text"><strong>ポイントが入る</strong>相手がミスしたらポイントゲット！<div class="flow-detail"><div class="diagram"><svg viewBox="0 0 200 80" width="200" height="80"><rect x="0" y="0" width="200" height="80" fill="#f0f7f4" rx="8"/><rect x="10" y="15" width="80" height="50" fill="#e8f5e9" rx="6" stroke="#52b788" stroke-width="1.5"/><rect x="110" y="15" width="80" height="50" fill="#fff0f0" rx="6" stroke="#ffb3b3" stroke-width="1.5"/><text x="50" y="35" text-anchor="middle" fill="#2d6a4f" font-size="9" font-weight="bold">自分</text><text x="50" y="50" text-anchor="middle" fill="#2d6a4f" font-size="8">ポイントGET!</text><text x="50" y="62" text-anchor="middle" fill="#2d6a4f" font-size="14">🎉</text><text x="150" y="35" text-anchor="middle" fill="#c0392b" font-size="9" font-weight="bold">相手</text><text x="150" y="50" text-anchor="middle" fill="#c0392b" font-size="8">ミス</text><text x="150" y="62" text-anchor="middle" fill="#c0392b" font-size="14">😓</text></svg></div>相手がアウト・ネット・2バウンドをしたらこちらのポイントです。</div></div></div>
+        <div class="flow-item" onclick="toggleFlow(this)"><div class="flow-num">5</div><div class="flow-text"><strong>ゲーム→セット→マッチと積み上げる</strong>ポイントを積んでゲームを取り、セットを取る<div class="flow-detail"><div class="diagram"><svg viewBox="0 0 200 70" width="200" height="70"><rect x="0" y="0" width="200" height="70" fill="#f0f7f4" rx="8"/><rect x="5" y="10" width="40" height="30" fill="#52b788" rx="6"/><text x="25" y="30" text-anchor="middle" fill="white" font-size="8" font-weight="bold">ポイント</text><text x="48" y="27" fill="#333" font-size="16">→</text><rect x="60" y="10" width="40" height="30" fill="#2d6a4f" rx="6"/><text x="80" y="30" text-anchor="middle" fill="white" font-size="9" font-weight="bold">ゲーム</text><text x="103" y="27" fill="#333" font-size="16">→</text><rect x="115" y="10" width="35" height="30" fill="#c8632a" rx="6"/><text x="132" y="30" text-anchor="middle" fill="white" font-size="9" font-weight="bold">セット</text><text x="153" y="27" fill="#333" font-size="16">→</text><rect x="163" y="10" width="32" height="30" fill="#e3b341" rx="6"/><text x="179" y="30" text-anchor="middle" fill="white" font-size="8" font-weight="bold">勝利!</text><text x="25" y="55" text-anchor="middle" fill="#555" font-size="8">4点先取</text><text x="80" y="55" text-anchor="middle" fill="#555" font-size="8">6G先取</text><text x="132" y="55" text-anchor="middle" fill="#555" font-size="8">2Set先取</text></svg></div>4ポイントでゲーム、6ゲームでセット、2セットでマッチ勝利（3セットマッチの場合）。</div></div></div>
+      </div>
+    </div>
+  </div>  <div class="section">
+    <div class="section-title"><span class="emoji">🔢</span> スコアの数え方</div>
+    <div class="section-body">
+      <table class="score-table">
+        <tr><th>ポイント数</th><th>呼び方</th><th>読み方</th></tr>
+        <tr><td>0点</td><td class="highlight">Love</td><td>ラブ</td></tr>
+        <tr><td>1点</td><td class="highlight">15</td><td>フィフティーン</td></tr>
+        <tr><td>2点</td><td class="highlight">30</td><td>サーティ</td></tr>
+        <tr><td>3点</td><td class="highlight">40</td><td>フォーティ</td></tr>
+        <tr><td>4点目</td><td class="highlight">Game</td><td>ゲーム獲得！</td></tr>
+      </table>
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">⚠️ デュースとは？</span><span class="card-arrow">▼</span></div><div class="card-body"><div class="diagram"><svg viewBox="0 0 200 100" width="200" height="100"><rect x="0" y="0" width="200" height="100" fill="#f0f7f4" rx="8"/><rect x="10" y="10" width="80" height="40" fill="#2d6a4f" rx="6"/><text x="50" y="35" text-anchor="middle" fill="white" font-size="18" font-weight="bold">40</text><text x="50" y="15" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="8">自分</text><rect x="110" y="10" width="80" height="40" fill="#c8632a" rx="6"/><text x="150" y="35" text-anchor="middle" fill="white" font-size="18" font-weight="bold">40</text><text x="150" y="15" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="8">相手</text><text x="100" y="65" text-anchor="middle" fill="#c8632a" font-size="13" font-weight="bold">DEUCE！</text><text x="100" y="82" text-anchor="middle" fill="#555" font-size="9">連続2ポイント先取した方がゲーム獲得</text></svg><div class="diagram-caption">40-40になったらデュース！アドバンテージ→ゲームで決着します。</div></div><p>両者が40-40になった場合が「デュース」です。連続で2ポイント取った方がゲームを取ります。</p></div></div>
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">🏆 ゲームとセットの勝ち方</span><span class="card-arrow">▼</span></div><div class="card-body"><p><strong>ゲーム：</strong>4ポイント先取（デュース時は2点差）</p><p><strong>セット：</strong>6ゲーム先取（6-6はタイブレーク）</p><p><strong>マッチ：</strong>2セット先取（3セットマッチの場合）</p></div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title"><span class="emoji">🎯</span> サーブのルール</div>
+    <div class="section-body">
+      <p class="tap-hint">👇 各項目をタップすると図解が見られます</p>
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">サーブの基本ルール</span><span class="card-arrow">▼</span></div><div class="card-body"><div class="diagram"><svg viewBox="0 0 160 220" width="160" height="220"><rect x="0" y="0" width="160" height="220" fill="#4a7c59" rx="4"/><rect x="8" y="10" width="144" height="200" fill="none" stroke="white" stroke-width="2.5"/><rect x="28" y="10" width="104" height="200" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="8" y1="110" x2="152" y2="110" stroke="#f4d03f" stroke-width="3"/><line x1="28" y1="70" x2="132" y2="70" stroke="white" stroke-width="1.5"/><line x1="28" y1="150" x2="132" y2="150" stroke="white" stroke-width="1.5"/><line x1="80" y1="70" x2="80" y2="150" stroke="white" stroke-width="1.5"/><text x="80" y="107" text-anchor="middle" fill="#f4d03f" font-size="7">ネット</text><text x="80" y="7" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="6">ベースライン</text><text x="80" y="218" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="6">ベースライン</text><circle cx="45" cy="213" r="9" fill="#52b788"/><text x="45" y="217" text-anchor="middle" fill="white" font-size="6">サーブ</text><rect x="80" y="70" width="50" height="40" fill="rgba(244,211,63,0.4)" rx="2"/><text x="105" y="94" text-anchor="middle" fill="white" font-size="8" font-weight="bold">ここへ！</text><defs><marker id="arr2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#f4d03f"/></marker></defs><path d="M48 204 Q70 150 100 95" stroke="#f4d03f" stroke-width="2" fill="none" stroke-dasharray="5,3" marker-end="url(#arr2)"/></svg></div><p>ベースラインの後ろから対角線上のサービスボックスへ打ちます。1ゲームごとにサーバーが交代します。</p></div></div>
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">1st &amp; 2nd サーブ</span><span class="card-arrow">▼</span></div><div class="card-body"><div class="diagram"><svg viewBox="0 0 200 90" width="200" height="90"><rect x="0" y="0" width="200" height="90" fill="#f0f7f4" rx="8"/><rect x="5" y="10" width="88" height="70" fill="#e8f5e9" rx="8" stroke="#52b788" stroke-width="2"/><text x="49" y="28" text-anchor="middle" fill="#2d6a4f" font-size="9" font-weight="bold">1st サーブ</text><text x="49" y="50" text-anchor="middle" fill="#2d6a4f" font-size="24">💪</text><text x="49" y="72" text-anchor="middle" fill="#555" font-size="8">思い切り打てる！</text><rect x="107" y="10" width="88" height="70" fill="#fff0f0" rx="8" stroke="#ffb3b3" stroke-width="2"/><text x="151" y="28" text-anchor="middle" fill="#c0392b" font-size="9" font-weight="bold">2nd サーブ</text><text x="151" y="50" text-anchor="middle" fill="#c0392b" font-size="24">🎯</text><text x="151" y="72" text-anchor="middle" fill="#555" font-size="8">慎重に！</text></svg></div><p><strong>ファーストサーブ：</strong>最初のサーブ。思い切り打てる！</p><p><strong>セカンドサーブ：</strong>1stを失敗したとき。慎重に打つ。</p><p><strong>ダブルフォルト：</strong>両方失敗すると相手にポイントが入る。</p></div></div>
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">🔄 レット（やり直し）</span><span class="card-arrow">▼</span></div><div class="card-body"><div class="diagram"><svg viewBox="0 0 160 220" width="160" height="220"><rect x="0" y="0" width="160" height="220" fill="#4a7c59" rx="4"/><rect x="8" y="10" width="144" height="200" fill="none" stroke="white" stroke-width="2.5"/><rect x="28" y="10" width="104" height="200" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="8" y1="110" x2="152" y2="110" stroke="#f4d03f" stroke-width="3"/><line x1="28" y1="70" x2="132" y2="70" stroke="white" stroke-width="1.5"/><line x1="28" y1="150" x2="132" y2="150" stroke="white" stroke-width="1.5"/><line x1="80" y1="70" x2="80" y2="150" stroke="white" stroke-width="1.5"/><text x="80" y="107" text-anchor="middle" fill="#f4d03f" font-size="7">ネット</text><text x="80" y="7" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="6">ベースライン</text><circle cx="45" cy="213" r="9" fill="#52b788"/><text x="45" y="217" text-anchor="middle" fill="white" font-size="6">サーブ</text><circle cx="80" cy="109" r="7" fill="#f4d03f"/><rect x="80" y="70" width="50" height="40" fill="rgba(244,211,63,0.25)" rx="2"/><defs><marker id="arr-let" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="white"/></marker></defs><path d="M48 206 Q65 150 78 112" stroke="white" stroke-width="2" fill="none" stroke-dasharray="4,3" marker-end="url(#arr-let)"/><text x="80" y="175" text-anchor="middle" fill="white" font-size="12" font-weight="bold">LET！</text><text x="80" y="190" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="7">ネットに触れてボックスへ</text><text x="80" y="200" text-anchor="middle" fill="#f4d03f" font-size="7">→ やり直し！</text></svg></div><p>サーブがネットに触れてサービスボックスに入った場合は「レット」でやり直しになります。</p></div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title"><span class="emoji">✨</span> ポイントが入る場面</div>
+    <div class="section-body">
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">🙋 自分にポイントが入るとき</span><span class="card-arrow">▼</span></div><div class="card-body"><p>・相手のボールがコート外（アウト）に出たとき</p><p>・相手のボールがネットにかかったとき</p><p>・相手がボールを2バウンドさせてしまったとき</p><p>・相手がダブルフォルトをしたとき</p></div></div>
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">📌 バウンドのルール</span><span class="card-arrow">▼</span></div><div class="card-body"><p>ボールは<strong>1バウンド以内</strong>に返球しなければなりません。ノーバウンド（ボレー）でも返球できます。</p></div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title"><span class="emoji">🔄</span> チェンジコートとサービス交代</div>
+    <div class="section-body">
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">コートチェンジ</span><span class="card-arrow">▼</span></div><div class="card-body"><div class="diagram"><svg viewBox="0 0 200 220" width="200" height="220"><rect x="0" y="0" width="200" height="220" fill="#4a7c59" rx="4"/><rect x="28" y="10" width="144" height="200" fill="none" stroke="white" stroke-width="2.5"/><rect x="48" y="10" width="104" height="200" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="28" y1="110" x2="172" y2="110" stroke="#f4d03f" stroke-width="3"/><line x1="48" y1="70" x2="152" y2="70" stroke="white" stroke-width="1.5"/><line x1="48" y1="150" x2="152" y2="150" stroke="white" stroke-width="1.5"/><line x1="100" y1="70" x2="100" y2="150" stroke="white" stroke-width="1.5"/><text x="100" y="107" text-anchor="middle" fill="#f4d03f" font-size="7">ネット</text><circle cx="14" cy="160" r="10" fill="#52b788"/><text x="14" y="164" text-anchor="middle" fill="white" font-size="9" font-weight="bold">A</text><circle cx="186" cy="60" r="10" fill="#c8632a"/><text x="186" y="64" text-anchor="middle" fill="white" font-size="9" font-weight="bold">B</text><defs><marker id="arr3" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#f4d03f"/></marker><marker id="arr4" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="white"/></marker></defs><path d="M14 150 Q14 110 14 75" stroke="#f4d03f" stroke-width="2.5" fill="none" stroke-dasharray="6,3" marker-end="url(#arr3)"/><path d="M186 70 Q186 110 186 148" stroke="white" stroke-width="2.5" fill="none" stroke-dasharray="6,3" marker-end="url(#arr4)"/><text x="100" y="130" text-anchor="middle" fill="#f4d03f" font-size="9" font-weight="bold">コートチェンジ！</text><text x="100" y="143" text-anchor="middle" fill="white" font-size="7">奇数ゲーム後に入れ替え</text></svg></div><p>奇数ゲーム（1・3・5…）が終わった後にコートを入れ替えます。</p></div></div>
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">サーブの交代タイミング</span><span class="card-arrow">▼</span></div><div class="card-body"><p>1ゲームごとにサーバーが交代します。ゲームが終わるたびに交互にサーブを行います。</p><div class="tip"><strong>💡 覚え方：</strong>「ゲームが終わったらサーブ交代、奇数ゲーム後はコートも交代！」</div></div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title"><span class="emoji">🚫</span> よくある反則・マナー</div>
+    <div class="section-body">
+      <div class="alert" onclick="toggleAlert(this)"><div class="alert-icon">🚫</div><div class="alert-text"><strong>フットフォルト：</strong>サーブ時にベースラインを踏むのはNG<div class="alert-detail">サーブを打つ瞬間、足がベースラインに触れたり越えたりするとフットフォルトになります。</div></div></div>
+      <div class="alert" onclick="toggleAlert(this)"><div class="alert-icon">🚫</div><div class="alert-text"><strong>ダブルヒット：</strong>1回のスイングでボールを2回触るのはNG<div class="alert-detail">1回のスイングでボールに2回触れてしまうとダブルヒットになります。</div></div></div>
+      <div class="card" onclick="toggleCard(this)"><div class="card-header"><span class="card-title">😊 大切なマナー</span><span class="card-arrow">▼</span></div><div class="card-body"><p>・試合前後に握手・挨拶をする</p><p>・相手のミスに喜びすぎない</p><p>・判断が難しい場合は相手に有利に判定する</p><p>・プレー中は静かにする</p></div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title"><span class="emoji">📝</span> まとめ・覚えておこう！</div>
+    <div class="section-body">
+      <div class="point-box" onclick="togglePoint(this)"><div class="point-label">スコアの順番</div><div class="point-value">0→15→30→40→Game</div><div class="point-desc">「ラブ・フィフティーン・サーティ・フォーティ・ゲーム」</div></div>
+      <div class="point-box" onclick="togglePoint(this)"><div class="point-label">試合の構造</div><div class="point-value">ポイント→ゲーム→セット→マッチ</div><div class="point-desc">6ゲーム先取でセット、2セット先取でマッチ勝利</div></div>
+      <div class="point-box" onclick="togglePoint(this)"><div class="point-label">サーブのチャンス</div><div class="point-value">2回（1st＋2nd）</div><div class="point-desc">2回とも失敗するとダブルフォルトで相手にポイント</div></div>
+      <div class="tip"><strong>🎾 まずは楽しむことが一番！</strong> ルールは試合をしながら自然に覚えていきましょう😊</div>
+    </div>
+  </div>
+</div>
+<div class="footer">🎾 テニス超基本ルールガイド｜初心者向け</div>
+<script>
+function toggleCard(el){el.classList.toggle('open');}
+function toggleFlow(el){el.classList.toggle('open');}
+function toggleAlert(el){el.classList.toggle('open');}
+function togglePoint(el){el.classList.toggle('open');}
+function toggleGrid(el){
+  const isGreen=el.classList.contains('green');
+  const detailId=isGreen?'singles-detail':'doubles-detail';
+  const detail=document.getElementById(detailId);
+  const isOpen=detail.classList.contains('show');
+  document.querySelectorAll('.grid-detail').forEach(d=>d.classList.remove('show'));
+  if(!isOpen)detail.classList.add('show');
+}
+</script>
+</body>
+</html>
+
+
