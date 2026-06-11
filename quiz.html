@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>テニスルールクイズ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap');
+  :root { --green:#2d6a4f; --light-green:#52b788; --clay:#c8632a; --yellow:#f4d03f; --bg:#f0f7f4; --white:#fff; --dark:#1a1a2e; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Zen Maru Gothic',sans-serif; background:var(--bg); color:var(--dark); min-height:100vh; }
+  .hero { background:linear-gradient(135deg,var(--green),#1b4332); padding:30px 20px; text-align:center; }
+  .hero h1 { font-size:24px; font-weight:900; color:var(--yellow); margin-bottom:6px; }
+  .hero p { color:rgba(255,255,255,0.8); font-size:13px; }
+  .container { max-width:560px; margin:0 auto; padding:20px 16px 60px; }
+  .start-screen { text-align:center; padding:30px 0; }
+  .start-icon { font-size:72px; margin-bottom:16px; animation:bounce 2s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .start-title { font-size:22px; font-weight:900; color:var(--green); margin-bottom:8px; }
+  .start-desc { font-size:14px; color:#555; margin-bottom:24px; line-height:1.8; }
+  .start-btn { display:inline-block; padding:16px 48px; background:var(--clay); color:white; border:none; border-radius:12px; font-size:18px; font-weight:bold; cursor:pointer; font-family:inherit; box-shadow:0 4px 12px rgba(200,99,42,0.3); }
+  .progress-wrap { margin-bottom:16px; }
+  .progress-info { display:flex; justify-content:space-between; font-size:13px; color:#666; margin-bottom:6px; }
+  .progress-bar { background:#ddd; border-radius:10px; height:8px; overflow:hidden; }
+  .progress-fill { background:linear-gradient(90deg,var(--light-green),var(--green)); height:100%; border-radius:10px; transition:width 0.4s ease; }
+  .quiz-card { background:var(--white); border-radius:16px; padding:24px; box-shadow:0 4px 16px rgba(0,0,0,0.08); margin-bottom:16px; }
+  .question-num { font-size:12px; color:var(--clay); font-weight:700; margin-bottom:8px; letter-spacing:1px; }
+  .question-text { font-size:17px; font-weight:700; color:var(--dark); line-height:1.6; margin-bottom:20px; }
+  .choices { display:flex; flex-direction:column; gap:10px; }
+  .choice-btn { padding:14px 16px; border-radius:10px; border:2px solid #e0e0e0; background:var(--bg); color:var(--dark); font-size:15px; font-family:inherit; cursor:pointer; text-align:left; transition:all 0.2s; font-weight:500; }
+  .choice-btn:hover:not(:disabled) { border-color:var(--light-green); background:#e8f5e9; transform:translateX(4px); }
+  .choice-btn.correct { border-color:var(--light-green); background:#e8f5e9; color:var(--green); font-weight:700; }
+  .choice-btn.wrong { border-color:#ffb3b3; background:#fff0f0; color:#c0392b; font-weight:700; }
+  .choice-btn.show-answer { border-color:var(--light-green); background:#e8f5e9; color:var(--green); }
+  .choice-btn:disabled { cursor:default; }
+  .feedback { border-radius:10px; padding:14px 16px; margin-top:14px; font-size:14px; font-weight:700; display:none; }
+  .feedback.correct { background:#e8f5e9; color:var(--green); border:2px solid var(--light-green); }
+  .feedback.wrong { background:#fff0f0; color:#c0392b; border:2px solid #ffb3b3; }
+  .feedback.show { display:block; }
+  .next-btn { width:100%; padding:14px; background:var(--green); color:white; border:none; border-radius:10px; font-size:16px; font-weight:bold; cursor:pointer; font-family:inherit; margin-top:12px; display:none; }
+  .next-btn.show { display:block; }
+  .result-screen { text-align:center; padding:20px 0; display:none; }
+  .result-icon { font-size:72px; margin-bottom:16px; }
+  .result-score { font-size:56px; font-weight:900; color:var(--clay); margin-bottom:8px; }
+  .result-label { font-size:18px; color:#555; margin-bottom:24px; }
+  .result-detail { background:var(--white); border-radius:14px; padding:20px; margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,0.06); }
+  .result-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; font-size:14px; }
+  .result-row:last-child { border-bottom:none; }
+  .result-row .correct { color:var(--green); font-weight:700; }
+  .result-row .wrong { color:#c0392b; font-weight:700; }
+  .retry-btn { display:inline-block; padding:14px 40px; background:var(--clay); color:white; border:none; border-radius:12px; font-size:16px; font-weight:bold; cursor:pointer; font-family:inherit; }
+  .grade { font-size:20px; font-weight:900; padding:12px 24px; border-radius:10px; margin-bottom:16px; display:inline-block; }
+  .grade.s { background:#fff3cc; color:#c8632a; }
+  .grade.a { background:#e8f5e9; color:#2d6a4f; }
+  .grade.b { background:#e3f2fd; color:#1565c0; }
+  .grade.c { background:#fff0f0; color:#c0392b; }
+  .back-btn { display:block; text-align:center; padding:12px; background:#2d6a4f; color:white; text-decoration:none; border-radius:10px; margin:20px 16px 0; font-weight:bold; font-size:15px; }
+</style>
+</head>
+<body>
+<a href="/rules.html" class="back-btn">← ルールガイドに戻る</a>
+<div class="hero">
+  <h1>🎾 テニスルールクイズ</h1>
+  <p>ルールをどれだけ覚えているか試してみよう！</p>
+</div>
+<div class="container">
+  <div class="start-screen" id="start-screen">
+    <div class="start-icon">🎾</div>
+    <div class="start-title">テニスルールクイズ</div>
+    <div class="start-desc">全10問・ランダム出題<br>4択で答えよう！<br>満点目指してチャレンジ！</div>
+    <button class="start-btn" onclick="startQuiz()">🎮 クイズスタート！</button>
+  </div>
+  <div id="quiz-screen" style="display:none">
+    <div class="progress-wrap">
+      <div class="progress-info"><span id="progress-text">問題 1 / 10</span><span id="score-text">正解: 0問</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="quiz-card">
+      <div class="question-num" id="question-num">第1問</div>
+      <div class="question-text" id="question-text"></div>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback"></div>
+    </div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">次の問題へ →</button>
+  </div>
+  <div class="result-screen" id="result-screen">
+    <div class="result-icon" id="result-icon">🏆</div>
+    <div class="result-score" id="result-score"></div>
+    <div class="result-label">10問中の正解数</div>
+    <div class="grade" id="result-grade"></div>
+    <div class="result-detail" id="result-detail"></div>
+    <button class="retry-btn" onclick="retryQuiz()">🔄 もう一度挑戦！</button>
+  </div>
+</div><script>
+const ALL_QUESTIONS = [
+  { q:"テニスのポイントの数え方で、0点のことを何と呼ぶ？", choices:["ゼロ","ラブ","ナッシング","オー"], answer:1, explanation:"0点は「ラブ（Love）」と呼びます！" },
+  { q:"サーブを2回連続で失敗することを何という？", choices:["ダブルフォルト","ダブルミス","レット","フォルト"], answer:0, explanation:"2回連続でサーブを失敗すると「ダブルフォルト」で相手にポイントが入ります！" },
+  { q:"テニスで「40-40」になった状態を何という？", choices:["タイブレーク","アドバンテージ","デュース","イーブン"], answer:2, explanation:"40-40は「デュース」！連続2ポイント取った方がゲームを取ります。" },
+  { q:"サーブがネットに触れてサービスボックスに入った場合は？", choices:["フォルト","レット（やり直し）","アウト","ポイント"], answer:1, explanation:"ネットに触れてボックスに入った場合は「レット」でやり直しになります！" },
+  { q:"シングルスの試合で使うコートはどれ？", choices:["外側の広いコート全体","内側の細いコート","ネット側だけ","ベースライン側だけ"], answer:1, explanation:"シングルスは内側の細いコートを使います。外側のアレーはダブルス専用です！" },
+  { q:"テニスで1ゲーム取るには何ポイント必要？", choices:["3ポイント","4ポイント","5ポイント","6ポイント"], answer:1, explanation:"4ポイント先取でゲーム獲得！（デュース時は2ポイント差が必要）" },
+  { q:"ボールがライン上に当たった場合はどうなる？", choices:["アウト","イン（有効）","やり直し","コーチに確認"], answer:1, explanation:"ライン上はIN（有効）です！完全に外に出るとアウトになります。" },
+  { q:"テニスの試合で何セット先取で勝ちになる？（3セットマッチの場合）", choices:["1セット","2セット","3セット","4セット"], answer:1, explanation:"3セットマッチでは2セット先取で勝利です！" },
+  { q:"コートチェンジ（エンドチェンジ）はいつ行う？", choices:["毎ゲーム後","奇数ゲーム後","偶数ゲーム後","セット終了後のみ"], answer:1, explanation:"奇数ゲーム（1・3・5…）が終わった後にコートを入れ替えます！" },
+  { q:"サーブ時にベースラインを踏んで打つ反則を何という？", choices:["フットフォルト","ラインフォルト","ステップフォルト","ベースフォルト"], answer:0, explanation:"ベースラインを踏んでサーブを打つと「フットフォルト」になります！" },
+  { q:"テニスで1セット取るには何ゲーム必要？", choices:["4ゲーム","5ゲーム","6ゲーム","7ゲーム"], answer:2, explanation:"6ゲーム先取でセット獲得！（6-6の場合はタイブレークになります）" },
+  { q:"テニスで30点のことを英語で何という？", choices:["フィフティーン","サーティ","フォーティ","スリー"], answer:1, explanation:"30点は「サーティ（Thirty）」です！15→フィフティーン、40→フォーティ" },
+  { q:"ノーバウンドでボールを打ち返すことを何という？", choices:["スマッシュ","ボレー","ロブ","ドロップ"], answer:1, explanation:"ノーバウンドで打ち返すことを「ボレー」といいます！" },
+  { q:"デュース後に1ポイント取った状態を何という？", choices:["マッチポイント","セットポイント","アドバンテージ","ゲームポイント"], answer:2, explanation:"デュース後の1ポイントリードは「アドバンテージ」！さらに1ポイントでゲーム獲得です。" },
+  { q:"テニスのシングルスとダブルスでコートの広さは違う？", choices:["同じ","シングルスの方が広い","ダブルスの方が広い","毎回変わる"], answer:2, explanation:"ダブルスはサイドの「アレー」エリアも使えるので広くなります！" },
+  { q:"相手のボールを2バウンドさせてから打った場合はどうなる？", choices:["やり直し","相手のポイント","自分のポイント","レット"], answer:1, explanation:"自分が2バウンドさせると相手のポイントになります！1バウンド以内に返球しましょう。" },
+  { q:"テニスのネットの高さは中央と端でどちらが高い？", choices:["中央の方が高い","端の方が高い","同じ高さ","試合によって違う"], answer:1, explanation:"ネットは端の方が高く、中央が一番低くなっています！" },
+  { q:"サーブは必ずどこから打つ？", choices:["ネットの前","ベースラインの後ろ","サービスラインの後ろ","どこからでもOK"], answer:1, explanation:"サーブはベースラインの後ろから打ちます！踏んでしまうとフットフォルトになります。" },
+  { q:"テニスの試合で先攻を決める方法は？", choices:["必ず身長が高い方","必ず年上の方","ラケットスピンで決める","じゃんけんで決める"], answer:2, explanation:"ラケットを回して（スピン）先攻を決めます！勝った方がサーブかレシーブかコートを選べます。" },
+  { q:"6ゲーム対6ゲームになったときに行う特別なゲームを何という？", choices:["デュース","アドバンテージ","タイブレーク","スーパータイ"], answer:2, explanation:"6-6になったら「タイブレーク」を行います！先に7ポイント（2ポイント差）取った方がセット獲得です。" },
+  { q:"テニスでサーブを打つ順番は？", choices:["毎ポイントごとに交代","1ゲームごとに交代","1セットごとに交代","ずっと同じ人"], answer:1, explanation:"サーブは1ゲームごとに交代します！" },
+  { q:"テニスで試合前後に行う大切なマナーは？", choices:["ガッツポーズ","握手・挨拶","ラケットを地面に叩く","大声で叫ぶ"], answer:1, explanation:"試合前後は必ず握手・挨拶をしましょう！スポーツマンシップの基本です。" },
+  { q:"ダブルスで使えるサイドのエリアを何という？", choices:["サービスゾーン","アレー","ウィング","サイドコート"], answer:1, explanation:"ダブルス専用のサイドエリアを「アレー」といいます！シングルスでは使えません。" },
+  { q:"テニスで相手コートにボールを入れるには何を越える必要がある？", choices:["フェンス","ネット","サービスライン","センターライン"], answer:1, explanation:"ボールは必ずネットを越えて相手コートに入れなければなりません！" },
+  { q:"ファーストサーブが入らなかった場合どうなる？", choices:["そのままポイントが相手に入る","セカンドサーブを打てる","やり直しになる","コートチェンジする"], answer:1, explanation:"ファーストサーブが失敗してもセカンドサーブのチャンスがあります！" },
+  { q:"アドバンテージの後にポイントを取られると？", choices:["ゲーム終了","デュースに戻る","セット終了","マッチ終了"], answer:1, explanation:"アドバンテージの後にポイントを失うとデュースに戻ります！" },
+  { q:"テニスで判断が難しいボールはどう判定するのがマナー？", choices:["自分に有利に判定","相手に有利に判定","コーチに聞く","やり直し"], answer:1, explanation:"判断が難しいときは相手に有利に判定するのがテニスのマナーです！" },
+  { q:"サービスボックスとはどこ？", choices:["ベースライン付近のエリア","ネット付近の四角いエリア","コート全体","センターライン上"], answer:1, explanation:"サービスボックスはネット付近の四角いエリアです！サーブはここに入れなければなりません。" },
+  { q:"テニスで15点のことを英語で何という？", choices:["ワン","フィフティーン","クォーター","ファースト"], answer:1, explanation:"15点は「フィフティーン（Fifteen）」です！0→ラブ、15→フィフティーン、30→サーティ、40→フォーティの順です。" },
+  { q:"スコアを読み上げるとき、どちらのポイントを先に言う？", choices:["レシーバー側","サーバー側","点数が高い方","点数が低い方"], answer:1, explanation:"スコアはサーバー側のポイントを先に読みます！例：サーバーが30点、レシーバーが15点なら「サーティ・フィフティーン」と呼びます。" },
+];
+
+let questions=[], currentIndex=0, score=0, answered=false, wrongQuestions=[];
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function startQuiz(){
+  questions=shuffle(ALL_QUESTIONS).slice(0,10);
+  currentIndex=0; score=0; answered=false; wrongQuestions=[];
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('result-screen').style.display='none';
+  document.getElementById('quiz-screen').style.display='block';
+  showQuestion();
+}
+
+function showQuestion(){
+  const q=questions[currentIndex]; answered=false;
+  document.getElementById('question-num').textContent=`第${currentIndex+1}問`;
+  document.getElementById('question-text').textContent=q.q;
+  document.getElementById('progress-text').textContent=`問題 ${currentIndex+1} / 10`;
+  document.getElementById('score-text').textContent=`正解: ${score}問`;
+  document.getElementById('progress-fill').style.width=`${(currentIndex/10)*100}%`;
+  const feedback=document.getElementById('feedback');
+  feedback.className='feedback'; feedback.textContent='';
+  const nextBtn=document.getElementById('next-btn');
+  nextBtn.className='next-btn';
+  nextBtn.textContent=currentIndex<9?'次の問題へ →':'結果を見る 🏆';
+  const choicesEl=document.getElementById('choices'); choicesEl.innerHTML='';
+  const shuffledChoices=shuffle(q.choices.map((c,i)=>({text:c,originalIndex:i})));
+  shuffledChoices.forEach(({text,originalIndex})=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn'; btn.textContent=text; btn.dataset.index=originalIndex;
+    btn.onclick=()=>selectAnswer(originalIndex,btn,shuffledChoices);
+    choicesEl.appendChild(btn);
+  });
+}
+
+function selectAnswer(selectedIndex,selectedBtn){
+  if(answered)return; answered=true;
+  const q=questions[currentIndex];
+  const isCorrect=selectedIndex===q.answer;
+  document.querySelectorAll('.choice-btn').forEach(btn=>{
+    btn.disabled=true;
+    if(parseInt(btn.dataset.index)===q.answer)btn.classList.add('show-answer');
+  });
+  if(isCorrect){selectedBtn.classList.add('correct');score++;showFeedback(true,`✅ 正解！ ${q.explanation}`);}
+  else{selectedBtn.classList.add('wrong');wrongQuestions.push({q:q.q,correct:q.choices[q.answer]});showFeedback(false,`❌ 不正解… 正解は「${q.choices[q.answer]}」です。${q.explanation}`);}
+  document.getElementById('next-btn').className='next-btn show';
+}
+
+function showFeedback(isCorrect,text){
+  const feedback=document.getElementById('feedback');
+  feedback.className=`feedback ${isCorrect?'correct':'wrong'} show`;
+  feedback.textContent=text;
+}
+
+function nextQuestion(){
+  currentIndex++;
+  if(currentIndex>=10)showResult();
+  else showQuestion();
+}
+
+function showResult(){
+  document.getElementById('quiz-screen').style.display='none';
+  document.getElementById('result-screen').style.display='block';
+  const pct=score/10;
+  let icon,gradeText,gradeClass;
+  if(pct===1){icon='🏆';gradeText='S級 パーフェクト！';gradeClass='s';}
+  else if(pct>=0.8){icon='🎉';gradeText='A級 すばらしい！';gradeClass='a';}
+  else if(pct>=0.6){icon='😊';gradeText='B級 もう少し！';gradeClass='b';}
+  else{icon='📚';gradeText='C級 もっと勉強しよう！';gradeClass='c';}
+  document.getElementById('result-icon').textContent=icon;
+  document.getElementById('result-score').textContent=`${score} / 10`;
+  const grade=document.getElementById('result-grade');
+  grade.textContent=gradeText; grade.className=`grade ${gradeClass}`;
+  let detailHTML=`<div style="font-size:14px;font-weight:700;color:#333;margin-bottom:12px">📋 結果詳細</div>`;
+  detailHTML+=`<div class="result-row"><span>正解数</span><span class="correct">${score}問</span></div>`;
+  detailHTML+=`<div class="result-row"><span>不正解数</span><span class="wrong">${10-score}問</span></div>`;
+  detailHTML+=`<div class="result-row"><span>正解率</span><span>${Math.round(pct*100)}%</span></div>`;
+  if(wrongQuestions.length>0){
+    detailHTML+=`<div style="margin-top:14px;font-size:13px;font-weight:700;color:#c0392b;margin-bottom:8px">❌ 間違えた問題</div>`;
+    wrongQuestions.forEach(w=>{detailHTML+=`<div style="font-size:12px;color:#555;padding:6px 0;border-bottom:1px solid #eee"><div style="margin-bottom:3px">${w.q}</div><div style="color:#2d6a4f;font-weight:700">正解: ${w.correct}</div></div>`;});
+  }
+  document.getElementById('result-detail').innerHTML=detailHTML;
+}
+
+function retryQuiz(){
+  document.getElementById('result-screen').style.display='none';
+  document.getElementById('start-screen').style.display='block';
+}
+</script>
+</body>
+</html>
+
